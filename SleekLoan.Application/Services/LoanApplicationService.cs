@@ -7,14 +7,14 @@ using SleekLoan.Domain.DTOs;
 using SleekLoan.Domain.Interfaces;
 using SleekLoan.Infrastructure.Data;
 
-namespace LoanApp.Services
+namespace SleekLoan.Application.Services
 {
     public class LoanApplicationService : ILoanApplicationService
     {
         private readonly ReadWriteDbContext context;
-        private readonly ILogger<LoanApplicationModel> logger;
+        private readonly ILogger<LoanApplicationService> logger;
 
-        public LoanApplicationService(ReadWriteDbContext context, ILogger<LoanApplicationModel> logger)
+        public LoanApplicationService(ReadWriteDbContext context, ILogger<LoanApplicationService> logger)
         {
             this.context = context;
             this.logger = logger;

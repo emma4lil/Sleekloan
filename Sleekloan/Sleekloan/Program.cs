@@ -1,7 +1,7 @@
-using LoanApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Sleekloan.Client.Pages;
 using Sleekloan.Components;
+using SleekLoan.Application.Services;
 using SleekLoan.Domain.Interfaces;
 using SleekLoan.Infrastructure.Data;
 

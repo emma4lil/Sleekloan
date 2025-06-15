@@ -10,7 +10,7 @@ namespace SleekLoan.Infrastructure.Data
 {
     public class ReadWriteDbContext: DbContext
     {
-        public DbSet<LoanApplication> LoanApplications { get; set; }
+        public virtual DbSet<LoanApplication> LoanApplications { get; set; }
         public ReadWriteDbContext(DbContextOptions<ReadWriteDbContext> options) : base(options)
         {
         }
