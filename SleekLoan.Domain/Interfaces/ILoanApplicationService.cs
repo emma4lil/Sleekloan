@@ -1,6 +1,6 @@
 ﻿using LoanApp.Application.DTOs;
 
-namespace LoanApp.Shared.common
+namespace SleekLoan.Domain.Interfaces
 {
     public interface ILoanApplicationService
     {

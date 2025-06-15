@@ -1,7 +1,66 @@
 ﻿@page "/"
+@using LoanApp.Application.DTOs
+@using SleekLoan.Domain.Interfaces
+@inject ILoanApplicationService loanServices
+@inject NavigationManager navigationManager
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Load Applications</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Loan Applications</h3>
+    <button class="btn btn-primary" @onclick="OnAddNewApplication">New Application</button>
+</div>
 
-Welcome to your new app.
+@if (loanApplications is null || !loanApplications.Any())
+{
+    <h4>No loan applications to view</h4>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Applicant Name</th>
+                <th>Amount (NGN)</th>
+                <th>Interest Rate</th>
+                <th>Status</th>
+                <th>Date Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var app in loanApplications)
+            {
+                <tr>
+                    <td>@app.Id</td>
+                    <td>@app.ApplicantName</td>
+                    <td>@app.LoanAmount</td>
+                    <td>@app.InterestRate</td>
+                    <td>@app.LoanStatus</td>
+                    <td>@app.ApplicationDate.ToShortDateString()</td>
+                    <td>
+                        <div class="d-flex">
+                            <button class="btn btn-link">edit</button>
+                            <button class="btn btn-link">del</button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private LoanApplicationResponse[]? loanApplications = Array.Empty<LoanApplicationResponse>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        loanApplications = (await loanServices.GetLoanApplicationsBy(1, 20)).ToArray();
+    }
+
+    void OnAddNewApplication()
+    {
+        navigationManager.NavigateTo("create");
+    }
+}

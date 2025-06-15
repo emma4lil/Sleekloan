@@ -1,9 +1,51 @@
 ﻿@page "/create"
+@using LoadApp.Data.Entities
+@using LoanApp.Application.DTOs
+@using SleekLoan.Domain.Interfaces
 @attribute [StreamRendering]
+@inject ILoanApplicationService loanServices
 
 <PageTitle>New Application</PageTitle>
-<h3>CreateLoanApplication</h3>
+<h3>Create Loan Application</h3>
+
+<EditForm Model="@loanApplication" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="applicantName" class="form-label">Applicant Name</label>
+        <InputText id="applicantName" class="form-control" @bind-Value="loanApplication.ApplicantName" />
+        <ValidationMessage For="@(() => loanApplication.ApplicantName)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="amount" class="form-label">Amount</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="loanApplication.LoanAmount" />
+        <ValidationMessage For="@(() => loanApplication.LoanAmount)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="term" class="form-label">Term (months)</label>
+        <InputNumber id="term" class="form-control" @bind-Value="loanApplication.LoanTerm" />
+        <ValidationMessage For="@(() => loanApplication.LoanTerm)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Application</button>
+</EditForm>
+
+@if (successMessage != null)
+{
+    <div class="alert alert-success mt-3">@successMessage</div>
+}
 
 @code {
+    private LoanApplicationRequest loanApplication = new();
+    private string? successMessage;
 
+    private async Task HandleValidSubmit()
+    {
+        await loanServices.CreateLoanApplicationRequest(loanApplication);
+        successMessage = "Loan application submitted successfully!";
+        loanApplication = new(); // Reset form
+    }
 }

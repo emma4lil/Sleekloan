@@ -1,8 +1,8 @@
 ﻿using LoadApp.Data.Entities;
 using LoanApp.Application.DTOs;
-using LoanApp.Shared.common;
 using LoanApp.Shared.enums;
 using Microsoft.EntityFrameworkCore;
+using SleekLoan.Domain.Interfaces;
 using SleekLoan.Infrastructure.Data;
 
 namespace LoanApp.Services

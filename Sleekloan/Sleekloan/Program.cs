@@ -1,8 +1,8 @@
 using LoanApp.Services;
-using LoanApp.Shared.common;
 using Microsoft.EntityFrameworkCore;
 using Sleekloan.Client.Pages;
 using Sleekloan.Components;
+using SleekLoan.Domain.Interfaces;
 using SleekLoan.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
