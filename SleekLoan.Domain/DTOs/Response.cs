@@ -11,5 +11,6 @@ namespace SleekLoan.Domain.DTOs
         public bool IsSuccess { get; set; }
         public string Message { get; set; } = string.Empty;
         public T? Data { get; set; }
+        public int PageItemCount { get; set; } = 1;
     }
 }

@@ -1,75 +1,326 @@
 ﻿@page "/"
+@using LoadApp.Data.Entities
 @using LoanApp.Application.DTOs
 @using SleekLoan.Domain.Interfaces
 @inject ILoanApplicationService loanServices
 @inject NavigationManager nav
+@inject ILogger<LoanApplication> logger
 @attribute [StreamRendering]
 
-<PageTitle>Load Applications</PageTitle>
+<PageTitle>Loan Applications</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>Loan Applications</h3>
-    <button class="btn btn-primary" @onclick="OnAddNewApplication">New Application</button>
+    <div>
+        <button class="btn btn-primary" @onclick="OnAddNewApplication">
+            <i class="fas fa-plus me-2"></i>New Application
+        </button>
+    </div>
 </div>
 
-@if (loanApplications is null || !loanApplications.Any())
+@if (isLoading)
 {
-    <h4>No loan applications to view</h4>
+    <div class="text-center my-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading applications...</p>
+    </div>
+}
+else if (errorMessage != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>@errorMessage
+        <button type="button" class="btn-close float-end" @onclick="ClearError"></button>
+    </div>
+}
+else if (loanApplications == null || !loanApplications.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h4>No loan applications found</h4>
+            <p class="text-muted">Get started by creating a new loan application</p>
+            <button class="btn btn-primary" @onclick="OnAddNewApplication">
+                <i class="fas fa-plus me-2"></i>Create Application
+            </button>
+        </div>
+    </div>
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Applicant Name</th>
-                <th>Amount (NGN)</th>
-                <th>Interest Rate</th>
-                <th>Status</th>
-                <th>Date Submitted</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var app in @loanApplications)
-            {
-                <tr>
-                    <td>@app.Id</td>
-                    <td>@app.ApplicantName</td>
-                    <td>@app.LoanAmount</td>
-                    <td>@app.InterestRate</td>
-                    <td>@app.LoanStatus</td>
-                    <td>@app.ApplicationDate.ToShortDateString()</td>
-                    <td>
-                        <div class="d-flex">
-                            <button @onclick="() => EditLoanApplication(app.Id)" class="btn btn-link">edit</button>
-                            <button @onclick="()=> DeleteLoanApplication(app.Id)" class="btn btn-link">del</button>
-                        </div>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Applicant Name</th>
+                            <th class="text-end">Amount (NGN)</th>
+                            <th class="text-end">Interest Rate</th>
+                            <th>Status</th>
+                            <th>Date Submitted</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var app in loanApplications)
+                        {
+                            <tr>
+                                <td>@app.Id</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="flex-shrink-0">
+                                            <div class="avatar-sm bg-light rounded">
+                                                <span class="avatar-title text-primary">
+                                                    @app.ApplicantName.Split(' ').Select(x => x[0]).Take(2).Aggregate("", (a, b) => a + b)
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 ms-2">
+                                            @app.ApplicantName
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-end">@app.LoanAmount.ToString("N2")</td>
+                                <td class="text-end">@app.InterestRate.ToString("0.00")%</td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(app.LoanStatus.ToString())">
+                                        @app.LoanStatus
+                                    </span>
+                                </td>
+                                <td>@app.ApplicationDate.ToString("dd MMM yyyy")</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        @if (app.LoanStatus.ToString() == "Pending")
+                                        {
+                                            <button class="btn btn-sm btn-success"
+                                                    @onclick="() => ApproveLoanApplication(app.Id)"
+                                                    title="Approve">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger"
+                                                    @onclick="() => RejectLoanApplication(app.Id)"
+                                                    title="Reject">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        }
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                @onclick="() => ViewLoanApplication(app.Id)"
+                                                title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                @onclick="() => EditLoanApplication(app.Id)"
+                                                title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                @onclick="() => ShowDeleteConfirmation(app.Id)"
+                                                title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <div>
+            <span class="text-muted">Showing @loanApplications.Length of @totalRecords applications</span>
+        </div>
+        <nav>
+            <ul class="pagination">
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => LoadPage(currentPage - 1)">
+                        Previous
+                    </button>
+                </li>
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <button class="page-link" @onclick="() => LoadPage(i)">@i</button>
+                    </li>
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => LoadPage(currentPage + 1)">
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+}
+
+@if (showDeleteModal)
+{
+    <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" @onclick="CloseDeleteModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this loan application? This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseDeleteModal">Cancel</button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-    private LoanApplicationModel[]? loanApplications = Array.Empty<LoanApplicationModel>();
+    private LoanApplicationModel[]? loanApplications;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private bool showDeleteModal = false;
+    private int loanIdToDelete;
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalRecords = 0;
+    private int totalPages = 1;
 
     protected override async Task OnInitializedAsync()
     {
-        loanApplications = (await @loanServices.GetLoanApplications(1, 20)).Data.ToArray();
+        try
+        {
+            await LoadLoanApplications();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading loan applications");
+            errorMessage = "Failed to load loan applications. Please try again later.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadLoanApplications()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await loanServices.GetLoanApplications(currentPage, pageSize);
+            loanApplications = result.Data.ToArray();
+            totalRecords = result.PageItemCount;
+            totalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading loan applications");
+            errorMessage = "Failed to load loan applications. Please try again later.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+
+        currentPage = page;
+        await LoadLoanApplications();
+    }
+
+    private string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Approved" => "bg-success",
+            "Rejected" => "bg-danger",
+            "Pending" => "bg-warning",
+            _ => "bg-secondary"
+        };
     }
 
     void OnAddNewApplication()
     {
         nav.NavigateTo("create");
     }
-    private async void DeleteLoanApplication(int appId)
+
+    private async Task ApproveLoanApplication(int loanId)
     {
-        await loanServices.DeleteLoanApplicationById(appId);
+        try
+        {
+            await loanServices.ApproveLoanApplication(loanId);
+            await LoadLoanApplications();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error approving loan application");
+            errorMessage = "Failed to approve application. Please try again.";
+        }
     }
-    private async void EditLoanApplication(int appId)
+
+    private async Task RejectLoanApplication(int loanId)
     {
-        nav.NavigateTo($"edit/{appId}");
+        try
+        {
+            await loanServices.RejectLoanApplication(loanId);
+            await LoadLoanApplications();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error rejecting loan application");
+            errorMessage = "Failed to reject application. Please try again.";
+        }
+    }
+
+    private void ShowDeleteConfirmation(int loanId)
+    {
+        loanIdToDelete = loanId;
+        showDeleteModal = true;
+    }
+
+    private void CloseDeleteModal()
+    {
+        showDeleteModal = false;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        try
+        {
+            await loanServices.DeleteLoanApplicationById(loanIdToDelete);
+            showDeleteModal = false;
+            await LoadLoanApplications();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error deleting loan application");
+            errorMessage = "Failed to delete application. Please try again.";
+            showDeleteModal = false;
+        }
+    }
+
+    private void ViewLoanApplication(int loanId)
+    {
+        nav.NavigateTo($"view/{loanId}");
+    }
+
+    private void EditLoanApplication(int loanId)
+    {
+        nav.NavigateTo($"edit/{loanId}");
+    }
+
+    private void ClearError()
+    {
+        errorMessage = null;
     }
 }

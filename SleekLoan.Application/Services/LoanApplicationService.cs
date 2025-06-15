@@ -2,6 +2,7 @@
 using LoanApp.Application.DTOs;
 using LoanApp.Shared.enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SleekLoan.Domain.DTOs;
 using SleekLoan.Domain.Interfaces;
 using SleekLoan.Infrastructure.Data;
@@ -11,10 +12,19 @@ namespace LoanApp.Services
     public class LoanApplicationService : ILoanApplicationService
     {
         private readonly ReadWriteDbContext context;
-        public LoanApplicationService(ReadWriteDbContext context)
+        private readonly ILogger<LoanApplicationModel> logger;
+
+        public LoanApplicationService(ReadWriteDbContext context, ILogger<LoanApplicationModel> logger)
         {
             this.context = context;
+            this.logger = logger;
         }
+
+        public Task<Response<bool>> ApproveLoanApplication(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<Response<bool>> CreateLoanApplicationRequest(CreateLoanApplicationRequest request)
         {
             // Other logic can be added here, such as validation or business rules
@@ -29,7 +39,7 @@ namespace LoanApp.Services
                 ApplicantName = request.ApplicantName ?? string.Empty,
                 LoanAmount = request.LoanAmount > 0 ? request.LoanAmount : 20000,
                 LoanTerm = request.LoanTerm > 0 ? request.LoanTerm : 30,
-                InterestRate = 5.0m, // We can call a method to calculate this based on the loan amount and term or other conditions
+                InterestRate = 5.0m, 
                 ApplicationDate = DateTime.UtcNow,
                 LoanStatus = LoanStatus.Pending
             };
@@ -142,7 +152,13 @@ namespace LoanApp.Services
             response.IsSuccess = true;
             response.Message = "Loan applications retrieved successfully.";
             response.Data = responses;
+            response.PageItemCount = responses.Count;
             return response;
+        }
+
+        public Task<Response<bool>> RejectLoanApplication(int id)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<Response<bool>> UpdateLoanApplication(LoanApplicationModel request)
