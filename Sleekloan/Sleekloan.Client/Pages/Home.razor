@@ -2,7 +2,8 @@
 @using LoanApp.Application.DTOs
 @using SleekLoan.Domain.Interfaces
 @inject ILoanApplicationService loanServices
-@inject NavigationManager navigationManager
+@inject NavigationManager nav
+@attribute [StreamRendering]
 
 <PageTitle>Load Applications</PageTitle>
 
@@ -41,8 +42,8 @@ else
                     <td>@app.ApplicationDate.ToShortDateString()</td>
                     <td>
                         <div class="d-flex">
-                            <button class="btn btn-link">edit</button>
-                            <button class="btn btn-link">del</button>
+                            <button @onclick="() => EditLoanApplication(app.Id)" class="btn btn-link">edit</button>
+                            <button @onclick="()=> DeleteLoanApplication(app.Id)" class="btn btn-link">del</button>
                         </div>
                     </td>
                 </tr>
@@ -61,6 +62,14 @@ else
 
     void OnAddNewApplication()
     {
-        navigationManager.NavigateTo("create");
+        nav.NavigateTo("create");
+    }
+    private async void DeleteLoanApplication(int appId)
+    {
+        await loanServices.DeleteLoanApplicationById(appId);
+    }
+    private async void EditLoanApplication(int appId)
+    {
+        nav.NavigateTo($"edit/{appId}");
     }
 }
