@@ -1,0 +1,70 @@
+﻿@page "/edit/{loanId:int}"
+@using LoanApp.Application.DTOs
+@using LoanApp.Shared.enums
+@using SleekLoan.Domain.DTOs
+@using SleekLoan.Domain.Interfaces
+@inject ILoanApplicationService loanServices
+
+<h3>Edit</h3>
+<h5>load id: @LoanId</h5>
+
+<EditForm Model="@loanApplication" OnValidSubmit="HandleValidSave">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label for="applicantName" class="form-label">Applicant Name</label>
+        <InputText id="applicantName" class="form-control" @bind-Value="loanApplication.ApplicantName" />
+        <ValidationMessage For="@(() => loanApplication.ApplicantName)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="amount" class="form-label">Amount</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="loanApplication.LoanAmount" />
+        <ValidationMessage For="@(() => loanApplication.LoanAmount)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="term" class="form-label">Term (months)</label>
+        <InputNumber id="term" class="form-control" @bind-Value="loanApplication.LoanTerm" />
+        <ValidationMessage For="@(() => loanApplication.LoanTerm)" />
+    </div>
+
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <InputSelect id="status" class="form-control" @bind-Value="loanApplication.LoanStatus">
+            @foreach (var status in Enum.GetValues(typeof(LoanStatus)))
+            {
+                <option value="@status">@status.ToString()</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => loanApplication.LoanStatus)" />
+    </div>
+
+   
+</EditForm>
+
+<button @onclick="HandleValidSave" class="btn btn-primary">Save changes</button>
+
+@code {
+    [Parameter]
+    public int LoanId { get; set; }
+    private LoanApplicationModel loanApplication = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        loanApplication = (await loanServices?.GetLoanApplicationById(LoanId)).Data;
+    }
+    private async Task HandleValidSave()
+    {
+        var response = await loanServices.UpdateLoanApplication(loanApplication);
+        if (response.IsSuccess)
+        {
+            
+        }
+        else
+        {
+            // Handle failure (e.g., show an error message)
+        }
+    }
+}

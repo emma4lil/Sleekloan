@@ -2,6 +2,7 @@
 using LoanApp.Application.DTOs;
 using LoanApp.Shared.enums;
 using Microsoft.EntityFrameworkCore;
+using SleekLoan.Domain.DTOs;
 using SleekLoan.Domain.Interfaces;
 using SleekLoan.Infrastructure.Data;
 
@@ -14,9 +15,14 @@ namespace LoanApp.Services
         {
             this.context = context;
         }
-        public async Task<LoanApplicationResponse> CreateLoanApplicationRequest(LoanApplicationRequest request)
+        public async Task<Response<bool>> CreateLoanApplicationRequest(CreateLoanApplicationRequest request)
         {
             // Other logic can be added here, such as validation or business rules
+            var response = new Response<bool>
+            {
+                IsSuccess = false,
+                Message = "Failed to create loan application."
+            };
 
             var loanApplication = new LoanApplication
             {
@@ -32,32 +38,78 @@ namespace LoanApp.Services
 
             if (await context.SaveChangesAsync() > 0)
             {
-                return await Task.FromResult(new LoanApplicationResponse
-                {
-                    Id = loanApplication.Id,
-                });
+                response.IsSuccess = true;
+                response.Message = "Loan application created successfully.";
+                response.Data = true;
+                return await Task.FromResult(response);
             }
 
-            return await Task.FromResult<LoanApplicationResponse>(null);
+            return response;
         }
 
-        public Task<bool> DeleteLoanApplicationById(int id)
+        public async Task<Response<bool>> DeleteLoanApplicationById(int id)
         {
-            throw new NotImplementedException();
+            var response = new Response<bool>
+            {
+                IsSuccess = false,
+                Message = "Failed to delete loan application."
+            };
+
+            var loanApplication = await context.LoanApplications.FindAsync(id);
+            if (loanApplication == null)
+            {
+                return response;
+            }
+
+            context.LoanApplications.Remove(loanApplication);
+            await context.SaveChangesAsync();
+
+            response.IsSuccess = true;
+            response.Message = "Loan application deleted successfully.";
+            return response;
         }
 
-        public Task<bool> DeleteLoanApplicationRequest(int id)
+        public async Task<Response<LoanApplicationModel>> GetLoanApplicationById(int id)
         {
-            throw new NotImplementedException();
+            var response = new Response<LoanApplicationModel>
+            {
+                IsSuccess = false,
+                Message = "Loan application not found."
+            };
+
+            var loanApplication = await (from loanApp in context.LoanApplications
+                        .AsNoTracking()
+                                         where loanApp.Id == id
+                                         select new LoanApplicationModel
+                                         {
+                                             Id = loanApp.Id,
+                                             ApplicantName = loanApp.ApplicantName,
+                                             LoanAmount = loanApp.LoanAmount,
+                                             LoanTerm = loanApp.LoanTerm,
+                                             InterestRate = loanApp.InterestRate,
+                                             ApplicationDate = loanApp.ApplicationDate,
+                                             LoanStatus = loanApp.LoanStatus
+                                         })
+                       .FirstOrDefaultAsync();
+            if (loanApplication == null)
+            {
+                return response;
+            }
+
+            response.IsSuccess = true;
+            response.Message = "Loan application retrieved successfully.";
+            response.Data = loanApplication;
+            return response;
         }
 
-        public Task<LoanApplicationResponse> GetLoanApplicationById(int id)
+        public async Task<Response<List<LoanApplicationModel>>> GetLoanApplications(int page = 1, int pageSize = 20)
         {
-            throw new NotImplementedException();
-        }
+            var response = new Response<List<LoanApplicationModel>>
+            {
+                IsSuccess = false,
+                Message = "Failed to retrieve loan applications."
+            };
 
-        public async Task<List<LoanApplicationResponse>> GetLoanApplicationsBy(int page = 1, int pageSize = 20)
-        {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 20;
 
@@ -70,7 +122,7 @@ namespace LoanApp.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            var responses = loanApplications.Select(l => new LoanApplicationResponse
+            var responses = loanApplications.Select(l => new LoanApplicationModel
             {
                 Id = l.Id,
                 ApplicantName = l.ApplicantName,
@@ -81,12 +133,47 @@ namespace LoanApp.Services
                 LoanStatus = l.LoanStatus
             }).ToList();
 
-            return responses;
+            if (responses.Count == 0)
+            {
+                response.Message = "No loan applications found.";
+                return response;
+            }
+
+            response.IsSuccess = true;
+            response.Message = "Loan applications retrieved successfully.";
+            response.Data = responses;
+            return response;
         }
 
-        public Task<LoanApplicationResponse> UpdateLoanApplicationRequest(int id, LoanApplicationRequest request)
+        public async Task<Response<bool>> UpdateLoanApplication(LoanApplicationModel request)
         {
-            throw new NotImplementedException();
+            var response = new Response<bool>
+            {
+                IsSuccess = false,
+                Message = "Failed to update loan application."
+            };
+
+            var loanApplication = await context.LoanApplications.FindAsync(request.Id);
+            if (loanApplication == null)
+            {
+                response.Message = "Loan application not found.";
+                return response;
+            }
+
+            loanApplication.ApplicantName = request.ApplicantName;
+            loanApplication.LoanAmount = request.LoanAmount;
+            loanApplication.LoanTerm = request.LoanTerm;
+            loanApplication.InterestRate = request.InterestRate;
+            loanApplication.LoanStatus = request.LoanStatus;
+
+            context.LoanApplications.Update(loanApplication);
+            await context.SaveChangesAsync();
+
+            response.IsSuccess = true;
+            response.Message = "Loan application updated successfully.";
+            response.Data = true;
+
+            return response;
         }
     }
 }

@@ -33,19 +33,19 @@
     <button type="submit" class="btn btn-primary">Submit Application</button>
 </EditForm>
 
-@if (successMessage != null)
+@if (@successMessage != null)
 {
     <div class="alert alert-success mt-3">@successMessage</div>
 }
 
 @code {
-    private LoanApplicationRequest loanApplication = new();
+    private CreateLoanApplicationRequest loanApplication = new();
     private string? successMessage;
 
     private async Task HandleValidSubmit()
     {
         await loanServices.CreateLoanApplicationRequest(loanApplication);
         successMessage = "Loan application submitted successfully!";
-        loanApplication = new(); // Reset form
+        loanApplication = new();
     }
 }

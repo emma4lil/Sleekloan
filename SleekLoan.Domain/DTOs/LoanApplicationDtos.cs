@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace LoanApp.Application.DTOs
 {
-    public class LoanApplicationRequest
+    public class CreateLoanApplicationRequest
     {
         [Required(ErrorMessage = "Applicant name is required")]
         public string? ApplicantName { get; set; }
@@ -13,7 +13,7 @@ namespace LoanApp.Application.DTOs
         public int LoanTerm { get; set; } = 1;
     }
 
-    public class LoanApplicationResponse
+    public class LoanApplicationModel
     {
         public int Id { get; set; }
         public string ApplicantName { get; set; }

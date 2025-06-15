@@ -30,7 +30,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var app in loanApplications)
+            @foreach (var app in @loanApplications)
             {
                 <tr>
                     <td>@app.Id</td>
@@ -52,11 +52,11 @@ else
 }
 
 @code {
-    private LoanApplicationResponse[]? loanApplications = Array.Empty<LoanApplicationResponse>();
+    private LoanApplicationModel[]? loanApplications = Array.Empty<LoanApplicationModel>();
 
     protected override async Task OnInitializedAsync()
     {
-        loanApplications = (await loanServices.GetLoanApplicationsBy(1, 20)).ToArray();
+        loanApplications = (await @loanServices.GetLoanApplications(1, 20)).Data.ToArray();
     }
 
     void OnAddNewApplication()
