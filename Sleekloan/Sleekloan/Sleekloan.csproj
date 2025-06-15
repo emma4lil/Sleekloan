@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\SleekLoan.Domain\SleekLoan.Domain.csproj" />
     <ProjectReference Include="..\Sleekloan.Client\Sleekloan.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.5" />
   </ItemGroup>

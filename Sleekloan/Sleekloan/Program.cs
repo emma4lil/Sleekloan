@@ -1,3 +1,4 @@
+using LoanApp.Shared.common;
 using Sleekloan.Client.Pages;
 using Sleekloan.Components;
 
@@ -7,6 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddScoped<ILoanApplicationService, LoanApplicationService>();
+builder.Services.AddDbContext<LoanAppContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("LoanAppDb"));
+});
+
 
 var app = builder.Build();
 

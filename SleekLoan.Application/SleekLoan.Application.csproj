@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SleekLoan.Data\SleekLoan.Infrastructure.csproj" />
+    <ProjectReference Include="..\SleekLoan.Domain\SleekLoan.Domain.csproj" />
   </ItemGroup>
 
 </Project>
