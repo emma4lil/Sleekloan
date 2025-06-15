@@ -1,6 +1,9 @@
+using LoanApp.Services;
 using LoanApp.Shared.common;
+using Microsoft.EntityFrameworkCore;
 using Sleekloan.Client.Pages;
 using Sleekloan.Components;
+using SleekLoan.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +13,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddScoped<ILoanApplicationService, LoanApplicationService>();
-builder.Services.AddDbContext<LoanAppContext>(options =>
+builder.Services.AddDbContext<ReadWriteDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("LoanAppDb"));
 });
